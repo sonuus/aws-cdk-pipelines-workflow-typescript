@@ -22,6 +22,12 @@
   },
   "dependencies": {
     "@aws-cdk/aws-dynamodb": "^1.121.0",
+    "@aws-cdk/aws-ec2": "^1.121.0",
+    "@aws-cdk/aws-glue": "^1.121.0",
+    "@aws-cdk/aws-iam": "^1.121.0",
+    "@aws-cdk/aws-kms": "^1.121.0",
+    "@aws-cdk/aws-s3": "^1.121.0",
+    "@aws-cdk/aws-s3-deployment": "^1.121.0",
     "@aws-cdk/core": "^1.121.0",
     "source-map-support": "^0.5.16"
   }
