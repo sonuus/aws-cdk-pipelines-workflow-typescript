@@ -148,6 +148,13 @@ export class GlueConstruct extends cdk.Construct {
         connections:[job_conn.connectionName]
       }
     })
+
+    //Dynamically upload resources to the script target
+    new s3_deployment.BucketDeployment(this, `DeployGlueJobScript`, {
+      sources:[s3_deployment.Source.asset('../glue_scripts/glue_job1.py')],
+      destinationBucket: glue_scripts_bucket,
+      destinationKeyPrefix: 'etl'
+    })
   }
 
   private glue_scripts_bucket(target_environment: string, logical_id_prefix: string, resource_name_prefix: string, s3_kms_key: kms.Key, access_logs_bucket: s3.Bucket): s3.Bucket {
