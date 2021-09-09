@@ -30,7 +30,8 @@ export class DynamoDbConstruct extends cdk.Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       writeCapacity: 5
     })
-
+    
+    console.log(table.tableName)
 
 
   }

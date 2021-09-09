@@ -4,7 +4,7 @@ import * as cdk from '@aws-cdk/core';
 import { AwsCdkPipelinesWorkflowTypescriptStack } from '../lib/aws-cdk-pipelines-workflow-typescript-stack';
 
 const app = new cdk.App();
-new AwsCdkPipelinesWorkflowTypescriptStack(app, 'AwsCdkPipelinesWorkflowTypescriptStack', {
+const s1 = new AwsCdkPipelinesWorkflowTypescriptStack(app, 'AwsCdkPipelinesWorkflowTypescriptStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -19,3 +19,5 @@ new AwsCdkPipelinesWorkflowTypescriptStack(app, 'AwsCdkPipelinesWorkflowTypescri
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+
+console.log(cdk.Stack.of(s1).stackName)
