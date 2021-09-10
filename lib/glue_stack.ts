@@ -36,7 +36,7 @@ export class GlueConstruct extends cdk.Construct {
     }) as s3.Bucket
 
     const s3_kms_key_parameter = cdk.Fn.importValue(mappings.S3_KMS_KEY)
-    const s3_kms_key: kms.Key = kms.Key.fromKeyArn(this, ``, s3_kms_key_parameter) as kms.Key
+    const s3_kms_key: kms.Key = kms.Key.fromKeyArn(this, `fromKeyArn`, s3_kms_key_parameter) as kms.Key
 
     const shared_security_group_parameter = cdk.Fn.importValue(mappings.SHARED_SECURITY_GROUP_ID)
 
@@ -52,7 +52,7 @@ export class GlueConstruct extends cdk.Construct {
 
     const shared_security_group = ec2.SecurityGroup.fromSecurityGroupId(this, `ImportedSecurityGroup`, mappings.SHARED_SECURITY_GROUP_ID)
 
-    const subnet = ec2.Subnet.fromSubnetAttributes(this, ``, {
+    const subnet = ec2.Subnet.fromSubnetAttributes(this, `fromSubnetAttributes`, {
       subnetId: glue_connection_subnet,
       availabilityZone: glue_connection_availability_zone
     })
@@ -109,7 +109,7 @@ export class GlueConstruct extends cdk.Construct {
       assumedBy: new iam.ServicePrincipal('glue.amazonaws.com')
     })
 
-    glue_role.attachInlinePolicy(new iam.Policy(this, ``, {
+    glue_role.attachInlinePolicy(new iam.Policy(this, `customGluePolicyDocument`, {
       document: customGluePolicyDocument
     }))
 
@@ -148,8 +148,6 @@ export class GlueConstruct extends cdk.Construct {
         connections:[job_conn.connectionName]
       }
     })
-
-
   }
 
   private glue_scripts_bucket(target_environment: string, logical_id_prefix: string, resource_name_prefix: string, s3_kms_key: kms.Key, access_logs_bucket: s3.Bucket): s3.Bucket {
