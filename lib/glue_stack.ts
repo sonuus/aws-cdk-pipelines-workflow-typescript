@@ -151,7 +151,7 @@ export class GlueConstruct extends cdk.Construct {
 
     //Dynamically upload resources to the script target
     new s3_deployment.BucketDeployment(this, `DeployGlueJobScript`, {
-      sources:[s3_deployment.Source.asset('../glue_scripts/glue_job1.py')],
+      sources:[s3_deployment.Source.asset('./glue_scripts')],
       destinationBucket: glue_scripts_bucket,
       destinationKeyPrefix: 'etl'
     })
