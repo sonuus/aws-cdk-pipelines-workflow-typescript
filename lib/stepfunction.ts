@@ -33,7 +33,7 @@ export interface ConstructorNameProps {
 }
 
 export class StepFunctionConstruct extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps,job_audit_table: dynamodb.Table) {
+  constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps, job_audit_table: dynamodb.Table, raw_to_conformed_job: glue.CfnJob) {
     super(scope, id);
 
     const vpc_id = cdk.Fn.importValue(mappings.VPC_ID)
@@ -46,8 +46,8 @@ export class StepFunctionConstruct extends cdk.Construct {
 
     const vpc = ec2.Vpc.fromVpcAttributes(this, `ImportedVpc`, {
       vpcId: vpc_id,
-      availabilityZones: [availability_zones_output_1 ],
-      privateSubnetIds: [subnet_ids_output_1 ],
+      availabilityZones: [availability_zones_output_1],
+      privateSubnetIds: [subnet_ids_output_1],
       privateSubnetRouteTableIds: [route_tables_output_1]
     })
 
@@ -74,7 +74,70 @@ export class StepFunctionConstruct extends cdk.Construct {
 
     status_function.addToRolePolicy(dynamoDBPolicy)
 
+    const fail_state = new stepfunctions.Fail(this, `${target_environment}${logical_id_prefix}EtlFailedState`, {
+      cause: 'Invalid response.',
+      error: 'Error'
+    })
+    const success_state = new stepfunctions.Succeed(this, `${target_environment}${logical_id_prefix}EtlSucceededState`)
+    const failure_function_task = new stepfunctions_tasks.LambdaInvoke(this, `${target_environment}${logical_id_prefix}EtlFailureStatusUpdateTask`, {
+      lambdaFunction: status_function,
+      resultPath: '$.taskresult',
+      retryOnServiceExceptions: true,
+      outputPath: '$',
+      payload: stepfunctions.TaskInput.fromObject({ 'Input.$': '$' })
+    })
+
+    const failure_notification_task = new stepfunctions_tasks.SnsPublish(this, `${target_environment}${logical_id_prefix}EtlFailurePublishTask`, {
+      topic: notification_topic,
+      subject: 'Job Failed',
+      message: stepfunctions.TaskInput.fromJsonPathAt('$')
+    })
+
+    failure_function_task.next(failure_notification_task)
+    failure_notification_task.next(fail_state)
+
+    const success_function_task = new stepfunctions_tasks.LambdaInvoke(this, `${target_environment}${logical_id_prefix}EtlSuccessStatusUpdateTask`, {
+      lambdaFunction: status_function,
+      resultPath: '$.taskresult',
+      retryOnServiceExceptions: true,
+      outputPath: '$',
+      payload: stepfunctions.TaskInput.fromObject({ 'Input.$': '$' })
+    })
+
+    const success_task = new stepfunctions_tasks.SnsPublish(this, `${target_environment}${logical_id_prefix}EtlFailurePublishTask`, {
+      topic: notification_topic,
+      subject: 'Job Completed',
+      message: stepfunctions.TaskInput.fromJsonPathAt('$')
+    })
+
+    success_function_task.next(success_task)
+    success_task.next(success_state)
+
+    const glue_raw_task = new stepfunctions_tasks.GlueStartJobRun(this, `${target_environment}${logical_id_prefix}GlueRawJobTask`, {
+      glueJobName: raw_to_conformed_job.name || '',
+      arguments: stepfunctions.TaskInput.fromObject({
+        '--target_databasename.$': '$.target_databasename',
+        '--target_bucketname.$': '$.target_bucketname',
+        '--source_bucketname.$': '$.source_bucketname',
+        '--source_key.$': '$.source_key',
+        '--base_file_name.$': '$.base_file_name',
+        '--p_year.$': '$.p_year',
+        '--p_month.$': '$.p_month',
+        '--p_day.$': '$.p_day',
+        '--table_name.$': '$.table_name'
+      }),
+      outputPath: '$',
+      resultPath: '$.taskresult',
+      integrationPattern: stepfunctions.IntegrationPattern.RUN_JOB,
+      comment: 'Raw to conformed data load'
+    })
+    glue_raw_task.addCatch(failure_function_task, { resultPath: '$.taskresult' },)
+
+    const machine_definition = glue_raw_task.next(success_function_task)
+
+    const machine = new stepfunctions.StateMachine(this, `${target_environment.toLocaleLowerCase()}-${resource_name_prefix}-etl-state-machine`, {
+      definition: machine_definition
+    })
+
   }
-
-
 }

@@ -25,6 +25,8 @@ export interface ConstructorNameProps {
 }
 
 export class GlueConstruct extends cdk.Construct {
+  public glue_job: glue.CfnJob
+
   constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps) {
     super(scope, id);
 
@@ -122,7 +124,7 @@ export class GlueConstruct extends cdk.Construct {
       subnet: subnet
     })
 
-    const raw_to_conformed_job = new glue.CfnJob(this, `${target_environment}${logical_id_prefix}RawToConformedJob`, {
+    this.glue_job = new glue.CfnJob(this, `${target_environment}${logical_id_prefix}RawToConformedJob`, {
       role: glue_role.roleName,
       command: {
         name: 'glueetl',
