@@ -104,7 +104,7 @@ export class StepFunctionConstruct extends cdk.Construct {
       payload: stepfunctions.TaskInput.fromObject({ 'Input.$': '$' })
     })
 
-    const success_task = new stepfunctions_tasks.SnsPublish(this, `${target_environment}${logical_id_prefix}EtlFailurePublishTask`, {
+    const success_task = new stepfunctions_tasks.SnsPublish(this, `${target_environment}${logical_id_prefix}EtlSuccessPublishTask`, {
       topic: notification_topic,
       subject: 'Job Completed',
       message: stepfunctions.TaskInput.fromJsonPathAt('$')
