@@ -39,23 +39,16 @@ export class StepFunctionConstruct extends cdk.Construct {
     const vpc_id = cdk.Fn.importValue(mappings.VPC_ID)
     const shared_security_group_output = cdk.Fn.importValue(mappings.SHARED_SECURITY_GROUP_ID)
     const availability_zones_output_1 = cdk.Fn.importValue(mappings.AVAILABILITY_ZONE_1)
-    const availability_zones_output_2 = cdk.Fn.importValue(mappings.AVAILABILITY_ZONE_2)
-
     const subnet_ids_output_1 = cdk.Fn.importValue(mappings.SUBNET_ID_1)
-    const subnet_ids_output_2 = cdk.Fn.importValue(mappings.SUBNET_ID_2)
-
     const route_tables_output_1 = cdk.Fn.importValue(mappings.ROUTE_TABLE_1)
-    const route_tables_output_2 = cdk.Fn.importValue(mappings.ROUTE_TABLE_2)
-
     const conformed_s3_bucket_id = cdk.Fn.importValue(mappings.S3_CONFORMED_BUCKET)
 
 
     const vpc = ec2.Vpc.fromVpcAttributes(this, `ImportedVpc`, {
       vpcId: vpc_id,
-      availabilityZones: [availability_zones_output_1, availability_zones_output_2],
-      privateSubnetIds: [subnet_ids_output_1, subnet_ids_output_2],
-      privateSubnetRouteTableIds: [route_tables_output_1, route_tables_output_2]
-
+      availabilityZones: [availability_zones_output_1 ],
+      privateSubnetIds: [subnet_ids_output_1 ],
+      privateSubnetRouteTableIds: [route_tables_output_1]
     })
 
     const shared_security_group = ec2.SecurityGroup.fromSecurityGroupId(this, `ImportedSecurityGroup`, shared_security_group_output)
