@@ -33,7 +33,7 @@ export interface ConstructorNameProps {
 }
 
 export class StepFunctionConstruct extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps) {
+  constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps,job_audit_table: dynamodb.Table) {
     super(scope, id);
 
     const vpc_id = cdk.Fn.importValue(mappings.VPC_ID)
@@ -62,9 +62,24 @@ export class StepFunctionConstruct extends cdk.Construct {
     const raw_bucket_name = cdk.Fn.importValue(mappings.S3_RAW_BUCKET)
     const raw_bucket = s3.Bucket.fromBucketName(this, `ImportedRawBucket`, raw_bucket_name)
     const notification_topic = new sns.Topic(this, `${target_environment}${logical_id_prefix}EtlFailedTopic`)
+    const status_function = new _lambda.Function(this, `${target_environment}${logical_id_prefix}EtlStatusUpdate`, {
+      runtime: _lambda.Runtime.PYTHON_3_8,
+      handler: 'lambda_handler.lambda_handler',
+      code: _lambda.Code.fromAsset("./lambdas"),
+      environment: {
+        'DYNAMODB_TABLE_NAME': job_audit_table.tableName,
+      },
+      securityGroups: [shared_security_group],
+      vpc: vpc
+    })
 
+    const dynamoDBPolicy = new iam.PolicyStatement({
+      actions: ['dynamodb:UpdateItem'],
+      resources: [job_audit_table.tableArn],
+      effect: iam.Effect.ALLOW
+    });
 
-
+    status_function.addToRolePolicy(dynamoDBPolicy)
 
   }
 

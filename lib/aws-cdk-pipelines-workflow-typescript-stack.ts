@@ -12,8 +12,8 @@ export class AwsCdkPipelinesWorkflowTypescriptStack extends cdk.Stack {
     super(scope, id, props);
 
     // The code that defines your stack goes here
-    const dynamo_table = new DynamoDbConstruct(this, `${target_environment}${logical_id_prefix}EtlDynamoDb`, {})
+    const dynamo_table:DynamoDbConstruct = new DynamoDbConstruct(this, `${target_environment}${logical_id_prefix}EtlDynamoDb`, {})
     const glue_set_up = new GlueConstruct(this, `${target_environment}${logical_id_prefix}EtlGlue`, {})
-    const stepfunction_set_up = new StepFunctionConstruct(this,`${target_environment}${logical_id_prefix}StepFunctionConstruct`,{})
+    const stepfunction_set_up = new StepFunctionConstruct(this,`${target_environment}${logical_id_prefix}StepFunctionConstruct`,{},dynamo_table.table)
   }
 }

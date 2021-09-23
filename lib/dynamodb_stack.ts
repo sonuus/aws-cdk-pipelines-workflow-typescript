@@ -15,11 +15,13 @@ export interface ConstructorNameProps {
 }
 
 export class DynamoDbConstruct extends cdk.Construct {
+  public table: dynamodb.Table
+
   constructor(scope: cdk.Construct, id: string, props: ConstructorNameProps) {
     super(scope, id);
 
 
-    const table = new dynamodb.Table(this,
+    this.table = new dynamodb.Table(this,
       `${target_environment}${logical_id_prefix}EtlAuditTable`, {
       tableName: `${target_environment.toLowerCase()}-${resource_name_prefix}-etl-job-audit`,
       partitionKey: { name: 'execution_id', type: dynamodb.AttributeType.STRING },
@@ -30,8 +32,8 @@ export class DynamoDbConstruct extends cdk.Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       writeCapacity: 5
     })
-    
-    console.log(table.tableName)
+
+    // console.log(this.table.tableName)
 
 
   }
